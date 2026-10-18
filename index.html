@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Todo App</title>
+  <style>
+    body { font-family: sans-serif; max-width: 400px; margin: 40px auto; }
+    li { display: flex; justify-content: space-between; margin: 4px 0; }
+    button { margin-left: 8px; }
+  </style>
+</head>
+<body>
+  <h1>Todo List</h1>
+  <input id="text" placeholder="New item" />
+  <button id="add">Add</button>
+  <ul id="list"></ul>
+
+  <script>
+    // Change this to your Render backend URL after deploying.
+    const API_URL = "https://todo-backend-hm6o.onrender.com/";
+
+    async function loadItems() {
+      const res = await fetch(`${API_URL}/items`);
+      const items = await res.json();
+      const list = document.getElementById("list");
+      list.innerHTML = "";
+      items.forEach((item) => {
+        const li = document.createElement("li");
+        li.textContent = item.text;
+        const del = document.createElement("button");
+        del.textContent = "x";
+        del.onclick = async () => {
+          await fetch(`${API_URL}/items/${item.id}`, { method: "DELETE" });
+          loadItems();
+        };
+        li.appendChild(del);
+        list.appendChild(li);
+      });
+    }
+
+    document.getElementById("add").onclick = async () => {
+      const input = document.getElementById("text");
+      const text = input.value.trim();
+      if (!text) return;
+      await fetch(`${API_URL}/items`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text }),
+      });
+      input.value = "";
+      loadItems();
+    };
+
+    loadItems();
+  </script>
+</body>
+</html>
